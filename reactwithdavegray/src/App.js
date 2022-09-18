@@ -7,19 +7,20 @@ import SearchItem from './SearchItem';
 import AddItem from './AddItem';
 
 export default function App() {
-  const [items, setItems] = useState(JSON.parse(localStorage.getItem('shoppinglist')));
+  const [items, setItems] = useState(
+    JSON.parse(
+      localStorage.getItem('shoppinglist')
+    ) || []
+  );
   const [newItem, setNewItem] = useState('');
   const [search, setSearch] = useState('');
 
-
-
-  const setAndSaveItems = (newItems) => {
-    setItems(newItems);
+  useEffect(() => {
     localStorage.setItem(
       'shoppinglist',
-      JSON.stringify(newItems)
+      JSON.stringify(items)
     );
-  };
+  }, [items]);
 
   const addItem = (item) => {
     const id = items.length
@@ -31,7 +32,7 @@ export default function App() {
       item,
     };
     const listItems = [...items, myNewItem];
-    setAndSaveItems(listItems);
+    setItems(listItems);
   };
   const handleCheck = (id) => {
     const listItems = items.map((item) =>
@@ -40,7 +41,7 @@ export default function App() {
         : item
     );
 
-    setAndSaveItems(listItems);
+    setItems(listItems);
   };
 
   const handleDelete = (id) => {
@@ -48,7 +49,7 @@ export default function App() {
       (item) => item.id !== id
     );
 
-    setAndSaveItems(listItems);
+    setItems(listItems);
   };
 
   const handleSubmit = (e) => {
