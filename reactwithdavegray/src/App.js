@@ -1,26 +1,46 @@
-import './index.css';
-import { useState, useEffect } from 'react';
 import Header from './Header';
-import Content from './Content';
-import Footer from './Footer';
 import SearchItem from './SearchItem';
 import AddItem from './AddItem';
+import Content from './Content';
+import Footer from './Footer';
+import React from 'react';
+import { useState, useEffect } from 'react';
+import './index.css';
+import { async } from 'q';
 
-export default function App() {
-  const [items, setItems] = useState(
-    JSON.parse(
-      localStorage.getItem('shoppinglist')
-    ) || []
-  );
+function App() {
+  const API_URL = 'http://localhost:7777/items';
+  const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState('');
   const [search, setSearch] = useState('');
+  const [fetchError, setFetchError] =
+    useState(null);
+  const [isLoading, setIsLoading] =
+    useState(true);
 
   useEffect(() => {
-    localStorage.setItem(
-      'shoppinglist',
-      JSON.stringify(items)
-    );
-  }, [items]);
+    const fetchItems = async () => {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok)
+          throw Error(
+            'Did not received the expected data'
+          );
+        const listItems = await response.json();
+        console.log(listItems);
+        setItems(listItems);
+        setFetchError(null);
+      } catch (err) {
+        console.log(err);
+        setFetchError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    setTimeout(() => {
+      (async () => await fetchItems())();
+    }, 2000);
+  }, []);
 
   const addItem = (item) => {
     const id = items.length
@@ -34,13 +54,13 @@ export default function App() {
     const listItems = [...items, myNewItem];
     setItems(listItems);
   };
+
   const handleCheck = (id) => {
     const listItems = items.map((item) =>
       item.id === id
         ? { ...item, checked: !item.checked }
         : item
     );
-
     setItems(listItems);
   };
 
@@ -48,40 +68,50 @@ export default function App() {
     const listItems = items.filter(
       (item) => item.id !== id
     );
-
     setItems(listItems);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!newItem) return;
-
     addItem(newItem);
-
     setNewItem('');
   };
+
   return (
     <div className='App'>
-      <Header title="Deepak's List" />
+      <Header title='Grocery List' />
       <AddItem
         newItem={newItem}
         setNewItem={setNewItem}
         handleSubmit={handleSubmit}
-      />{' '}
+      />
       <SearchItem
         search={search}
         setSearch={setSearch}
-      />{' '}
-      <Content
-        items={items.filter((item) =>
-          item.item
-            .toLowerCase()
-            .includes(search.toLowerCase())
+      />
+      <main>
+        {isLoading && <p> Loading Items... </p>}
+        {fetchError && (
+          <p
+            style={{ color: 'red' }}
+          >{`Error: ${fetchError}`}</p>
         )}
-        handleCheck={handleCheck}
-        handleDelete={handleDelete}
-      />{' '}
-      <Footer length={items.length} />{' '}
+        {!fetchError && (
+          <Content
+            items={items.filter((item) =>
+              item.item
+                .toLowerCase()
+                .includes(search.toLowerCase())
+            )}
+            handleCheck={handleCheck}
+            handleDelete={handleDelete}
+          />
+        )}
+      </main>
+      <Footer length={items.length} />
     </div>
   );
 }
+
+export default App;
