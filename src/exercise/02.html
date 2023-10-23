@@ -6,10 +6,15 @@
 
 
   <script type="module">
+    const helloElement = React.createElement('span', {}, 'Hello')
+    const worldElement = React.createElement('span', {}, 'world')
     const rootElement = React.createElement('div',
-      { className: 'container' },
-      React.createElement('span', {}, 'Hello '),
-      React.createElement('span', {}, 'World')
+      {
+        className: 'container'
+      },
+      helloElement,
+      ' ',
+      worldElement,
     )
     ReactDOM.render(rootElement, document.getElementById('root'))
   </script>
